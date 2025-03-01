@@ -35,7 +35,7 @@ By addressing these areas, this project demonstrates how structured SQL-based da
 - Analyzed **factors contributing to customer attrition** and suggested retention strategies.
 - Generated a segmentation model to categorize customers into **high, medium, and low-value clients**.
 
-### 4️⃣ **Sales Channel & Performance Optimization**
+### 4 **Sales Channel & Performance Optimization**
 - Evaluated **customer satisfaction scores across different sales channels**.
 - Measured revenue impact per channel (online vs. physical stores).
 - Recommended **strategic sales focus** based on data-driven insights.
