@@ -1,0 +1,95 @@
+-- Create Database
+CREATE DATABASE IF NOT EXISTS BusinessIntelligenceDB;
+USE BusinessIntelligenceDB;
+
+-- Table: Clients
+CREATE TABLE IF NOT EXISTS Clients (
+    ID_Client INT PRIMARY KEY AUTO_INCREMENT,
+    Age INT NOT NULL,
+    Sexe VARCHAR(10) NOT NULL,
+    Pays VARCHAR(50) NOT NULL,
+    Revenu_Annuel DECIMAL(10,2) NOT NULL,
+    Date_Inscription DATE NOT NULL,
+    Nombre_Achats INT NOT NULL,
+    Preference_Produit VARCHAR(50),
+    Canal_Prefere VARCHAR(50),
+    Score_Fidelite INT NOT NULL
+);
+
+-- Table: Produits
+CREATE TABLE IF NOT EXISTS Produits (
+    ID_Produit INT PRIMARY KEY AUTO_INCREMENT,
+    Nom_Produit VARCHAR(100) NOT NULL,
+    Categorie VARCHAR(50) NOT NULL,
+    Sous_Categorie VARCHAR(50),
+    Prix DECIMAL(10,2) NOT NULL,
+    Date_Lancement DATE NOT NULL,
+    Date_Fin_Production DATE,
+    Nombre_Revendeurs INT,
+    Nombre_Pays_Distribution INT,
+    Nombre_Publicites INT,
+    Gamme VARCHAR(50),
+    Certification VARCHAR(100)
+);
+
+-- Table: Ventes
+CREATE TABLE IF NOT EXISTS Ventes (
+    ID_Vente INT PRIMARY KEY AUTO_INCREMENT,
+    ID_Produit INT NOT NULL,
+    Quantite_Vendue INT NOT NULL,
+    Date_Vente DATE NOT NULL,
+    ID_Client INT NOT NULL,
+    Montant_Total DECIMAL(10,2) NOT NULL,
+    Delai_Livraison_Jours INT NOT NULL,
+    Score_Satisfaction INT NOT NULL,
+    Methode_Expedition VARCHAR(50) NOT NULL,
+    Canal_Achat VARCHAR(50) NOT NULL,
+    Pays_Vente VARCHAR(50) NOT NULL,
+    FOREIGN KEY (ID_Produit) REFERENCES Produits(ID_Produit),
+    FOREIGN KEY (ID_Client) REFERENCES Clients(ID_Client)
+);
+
+-- Business Intelligence Queries
+
+-- 1. Identify high-value customers based on revenue and loyalty score
+SELECT * FROM Clients 
+WHERE Revenu_Annuel > 50000 AND Score_Fidelite > 7;
+
+-- 2. Analyze sales channels and customer satisfaction
+SELECT Canal_Achat, ROUND(AVG(Score_Satisfaction),2) AS Avg_Satisfaction, COUNT(ID_Vente) AS Total_Sales
+FROM Ventes
+GROUP BY Canal_Achat
+ORDER BY Avg_Satisfaction DESC;
+
+-- 3. Identify top-selling products and their revenue contribution
+SELECT p.Nom_Produit, SUM(v.Quantite_Vendue) AS Total_Sales, SUM(v.Montant_Total) AS Revenue_Generated
+FROM Produits p
+JOIN Ventes v ON p.ID_Produit = v.ID_Produit
+GROUP BY p.Nom_Produit
+ORDER BY Revenue_Generated DESC;
+
+-- 4. Segment customers based on purchasing behavior
+SELECT ID_Client, Age, Revenu_Annuel,
+    CASE
+        WHEN Age < 35 AND Revenu_Annuel > 50000 THEN 'Young-High Income'
+        WHEN Age < 35 AND Revenu_Annuel BETWEEN 30000 AND 50000 THEN 'Young-Mid Income'
+        WHEN Age < 35 AND Revenu_Annuel < 30000 THEN 'Young-Low Income'
+        WHEN Age >= 35 AND Revenu_Annuel > 50000 THEN 'Senior-High Income'
+        WHEN Age >= 35 AND Revenu_Annuel BETWEEN 30000 AND 50000 THEN 'Senior-Mid Income'
+        ELSE 'Senior-Low Income'
+    END AS Customer_Segment
+FROM Clients;
+
+-- 5. Find best-performing markets based on sales volume
+SELECT Pays_Vente, COUNT(ID_Vente) AS Total_Sales
+FROM Ventes
+GROUP BY Pays_Vente
+ORDER BY Total_Sales DESC
+LIMIT 5;
+
+-- 6. Optimize logistics: Identify regions with slowest deliveries
+SELECT Pays_Vente, Methode_Expedition, AVG(Delai_Livraison_Jours) AS Avg_Delivery_Time
+FROM Ventes
+GROUP BY Pays_Vente, Methode_Expedition
+ORDER BY Avg_Delivery_Time DESC
+LIMIT 5;
